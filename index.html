@@ -6,7 +6,6 @@
     <title>Nakkavat_025 | Portfolio</title>
     <!-- Tailwind CSS (Minimal Lux Theme) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
     
     <script>
@@ -32,13 +31,9 @@
     <style>
         body { background-color: #1a1a1a; color: #fdfbf7; }
         .lux-border { border-color: rgba(212, 175, 55, 0.3); }
-        
-        /* 🛠 แก้ปัญหาหน้า Welcome โผล่ซ้อน (บังคับซ่อน/แสดงอย่างเด็ดขาด) */
         .tab-content { display: none !important; }
         #tab-home.active { display: flex !important; }
         #tab-profile.active, #tab-assignments.active { display: block !important; }
-        
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
         ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
@@ -50,19 +45,14 @@
     <nav class="border-b lux-border bg-graphite/95 sticky top-0 z-50 backdrop-blur-sm">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
-                <!-- โลโก้ (ซ้าย) -->
                 <div class="flex-shrink-0 cursor-pointer w-1/4" onclick="switchTab('home')">
                     <h1 class="text-3xl font-serif text-champagne">Nakkavat_025</h1>
                 </div>
-                
-                <!-- 🛠 เมนู (จัดให้อยู่ตรงกลาง) -->
                 <div class="hidden md:flex space-x-8 items-center justify-center flex-grow">
                     <button onclick="switchTab('home')" id="nav-home" class="nav-link active text-champagne border-b border-champagne pb-1 transition">หน้าหลัก</button>
                     <button onclick="switchTab('profile')" id="nav-profile" class="nav-link text-pearl-dim hover:text-champagne pb-1 transition">ประวัติส่วนตัว</button>
                     <button onclick="switchTab('assignments')" id="nav-assignments" class="nav-link text-pearl-dim hover:text-champagne pb-1 transition">ใบงาน</button>
                 </div>
-
-                <!-- ปุ่ม Login (ขวา) -->
                 <div class="flex justify-end items-center w-1/4">
                     <button id="btn-login-modal" onclick="document.getElementById('login-modal').classList.remove('hidden')" class="bg-graphite-light border lux-border text-champagne px-4 py-2 rounded hover:bg-champagne hover:text-graphite transition">Login</button>
                     <button id="btn-logout" onclick="logoutAdmin()" class="hidden bg-champagne text-graphite px-4 py-2 rounded hover:bg-champagne-hover transition">Logout</button>
@@ -88,7 +78,7 @@
         <section id="tab-profile" class="tab-content">
             <h2 class="text-3xl font-serif text-champagne mb-8 border-b lux-border pb-4">ประวัติส่วนตัว (Profile)</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Column 1: Photo & Contact -->
+                <!-- Profile Image & Info -->
                 <div class="space-y-6">
                     <div class="bg-graphite-light border lux-border rounded-xl aspect-[3/4] flex items-center justify-center overflow-hidden">
                         <img src="profile.jpg" alt="Student Photo" class="w-full h-full object-cover" onerror="this.style.display='none'; document.getElementById('photo-placeholder').style.display='block';">
@@ -104,13 +94,12 @@
                         </ul>
                     </div>
                 </div>
-
-                <!-- Column 2: Education & Experience -->
+                <!-- Education & Experience -->
                 <div class="md:col-span-2 space-y-8">
                     <!-- Education -->
                     <div class="bg-graphite-light p-8 rounded-xl border lux-border">
                         <h3 class="text-champagne font-serif text-2xl mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path></svg>
                             ประวัติการศึกษา (Education)
                         </h3>
                         <div class="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[#d4af37]/30 before:to-transparent">
@@ -132,7 +121,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Work Experience -->
                     <div class="bg-graphite-light p-8 rounded-xl border lux-border">
                         <h3 class="text-champagne font-serif text-2xl mb-6 flex items-center gap-2">
@@ -170,7 +158,7 @@
                 </div>
             </div>
 
-            <!-- Admin Form -->
+            <!-- Admin Form (Modified for Image URL) -->
             <div id="admin-form" class="hidden bg-graphite-light border lux-border p-6 rounded-xl mb-10 shadow-lg relative">
                 <div class="absolute top-4 right-4 bg-[#d4af37]/20 text-champagne text-xs px-2 py-1 rounded">Autosync Active</div>
                 <h3 class="text-champagne font-medium text-lg mb-4">+ เพิ่มใบงานใหม่ (Admin Mode)</h3>
@@ -202,10 +190,10 @@
                             </select>
                         </div>
                     </div>
+                    <!-- เปลี่ยนจากอัปโหลดไฟล์ เป็นใส่ลิงก์รูปภาพ -->
                     <div>
-                        <label class="block text-pearl-dim text-xs mb-1">แนบรูปภาพใบงาน (Image)</label>
-                        <input type="file" id="input-image" accept="image/*" class="w-full bg-graphite border lux-border text-pearl-dim text-sm rounded px-3 py-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-champagne file:text-graphite hover:file:bg-champagne-hover cursor-pointer">
-                        <p id="upload-status" class="text-xs text-champagne mt-1 hidden">กำลังอัปโหลดรูปภาพ...</p>
+                        <label class="block text-pearl-dim text-xs mb-1">ลิงก์รูปภาพ (Image URL) *นำรูปลงเว็บฝากรูปแล้วนำลิงก์มาวาง*</label>
+                        <input type="url" id="input-image-url" placeholder="เช่น https://i.postimg.cc/.../image.jpg (เว้นว่างได้)" class="w-full bg-graphite border lux-border text-pearl rounded px-3 py-2 focus:outline-none focus:border-champagne">
                     </div>
                     <div>
                         <label class="block text-pearl-dim text-xs mb-1">รายละเอียด (Description / Links)</label>
@@ -270,8 +258,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+        // ==========================================
+        //                  API KEY 
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAeKsHAy46jaCB1s8MNY9MAvg81JZCc_y0",
             authDomain: "nakkavat025.firebaseapp.com",
@@ -284,7 +274,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const storage = getStorage(app);
 
         let isAdmin = false;
 
@@ -328,36 +317,25 @@
 
         window.logoutAdmin = () => signOut(auth);
 
+        // เปลี่ยนระบบเซฟข้อมูลเป็นรับ URL ตรงๆ
         document.getElementById('form-assignment').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-job');
-            const statusEl = document.getElementById('upload-status');
-            const imageFile = document.getElementById('input-image').files[0];
+            const imageUrl = document.getElementById('input-image-url').value; // รับค่าลิงก์รูป
             
             btn.disabled = true;
-            btn.textContent = "กำลังประมวลผล...";
+            btn.textContent = "กำลังบันทึกข้อมูล...";
             
             try {
-                let imageUrl = "";
-                
-                if (imageFile) {
-                    statusEl.classList.remove('hidden');
-                    const imageRef = ref(storage, 'assignments/' + Date.now() + '_' + imageFile.name);
-                    const snapshot = await uploadBytes(imageRef, imageFile);
-                    imageUrl = await getDownloadURL(snapshot.ref);
-                }
-                
-                statusEl.textContent = "กำลังบันทึกข้อมูล...";
                 await addDoc(collection(db, "assignments"), {
                     title: document.getElementById('input-title').value,
                     week: document.getElementById('input-week').value,
                     desc: document.getElementById('input-desc').value,
-                    imageUrl: imageUrl,
+                    imageUrl: imageUrl, // เซฟลิงก์ลงฐานข้อมูล
                     createdAt: serverTimestamp()
                 });
 
                 document.getElementById('form-assignment').reset();
-                statusEl.classList.add('hidden');
                 alert("โพสต์ใบงานเรียบร้อยแล้ว!");
                 loadAssignments(); 
 
@@ -367,8 +345,6 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = "โพสต์ใบงาน";
-                statusEl.classList.add('hidden');
-                statusEl.textContent = "กำลังอัปโหลดรูปภาพ...";
             }
         });
 
@@ -396,8 +372,8 @@
                     card.className = "bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
                     
                     let imgHtml = '';
-                    if (data.imageUrl) {
-                        imgHtml = `<div class="w-full h-48 border-b lux-border bg-graphite overflow-hidden">
+                    if (data.imageUrl && data.imageUrl.startsWith('http')) {
+                        imgHtml = `<div class="w-full h-48 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center">
                                       <img src="${escapeHTML(data.imageUrl)}" alt="Assignment Image" class="w-full h-full object-cover hover:scale-105 transition duration-500">
                                    </div>`;
                     }
@@ -422,7 +398,7 @@
 
             } catch (error) {
                 console.error("Error loading assignments: ", error);
-                container.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 bg-graphite-light rounded-xl border lux-border">เกิดข้อผิดพลาดในการโหลดข้อมูล (เช็ค Rule หรือ API Key)</div>`;
+                container.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 bg-graphite-light rounded-xl border lux-border">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
             }
         };
 
