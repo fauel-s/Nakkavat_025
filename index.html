@@ -190,9 +190,8 @@
                             </select>
                         </div>
                     </div>
-                    <!-- เปลี่ยนจากอัปโหลดไฟล์ เป็นใส่ลิงก์รูปภาพ -->
                     <div>
-                        <label class="block text-pearl-dim text-xs mb-1">ลิงก์รูปภาพ (Image URL) *นำรูปลงเว็บฝากรูปแล้วนำลิงก์มาวาง*</label>
+                        <label class="block text-pearl-dim text-xs mb-1">ลิงก์รูปภาพ (Image URL) *นำรูปลงเว็บฝากรูปแล้วนำลิงก์ Direct link มาวาง*</label>
                         <input type="url" id="input-image-url" placeholder="เช่น https://i.postimg.cc/.../image.jpg (เว้นว่างได้)" class="w-full bg-graphite border lux-border text-pearl rounded px-3 py-2 focus:outline-none focus:border-champagne">
                     </div>
                     <div>
@@ -256,11 +255,12 @@
     <!-- Firebase System -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🛠 เพิ่มคำสั่ง deleteDoc และ doc สำหรับใช้ลบข้อมูล
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // ==========================================
-        //                  API KEY 
+        // 🛑 นำ API KEY ของจริงมาวางทับที่ตัวแปรนี้ 🛑
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAeKsHAy46jaCB1s8MNY9MAvg81JZCc_y0",
@@ -284,11 +284,13 @@
                 document.getElementById('btn-login-modal').classList.add('hidden');
                 document.getElementById('btn-logout').classList.remove('hidden');
                 document.getElementById('login-modal').classList.add('hidden');
+                loadAssignments(); // รีโหลดเพื่อโชว์ปุ่มลบ
             } else {
                 isAdmin = false;
                 document.getElementById('admin-form').classList.add('hidden');
                 document.getElementById('btn-login-modal').classList.remove('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
+                loadAssignments(); // รีโหลดเพื่อซ่อนปุ่มลบ
             }
         });
 
@@ -317,11 +319,25 @@
 
         window.logoutAdmin = () => signOut(auth);
 
-        // เปลี่ยนระบบเซฟข้อมูลเป็นรับ URL ตรงๆ
+        // 🛠 ฟังก์ชันสำหรับลบใบงาน
+        window.deleteAssignment = async (docId) => {
+            if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบใบงานนี้? (ลบแล้วกู้คืนไม่ได้)")) {
+                try {
+                    await deleteDoc(doc(db, "assignments", docId));
+                    alert("ลบใบงานสำเร็จ!");
+                    loadAssignments(); // รีโหลดใบงานใหม่หลังจากลบเสร็จ
+                } catch (error) {
+                    console.error("Error deleting document: ", error);
+                    alert("เกิดข้อผิดพลาดในการลบใบงาน");
+                }
+            }
+        };
+
+        // ฟังก์ชันโพสต์ใบงาน
         document.getElementById('form-assignment').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-job');
-            const imageUrl = document.getElementById('input-image-url').value; // รับค่าลิงก์รูป
+            const imageUrl = document.getElementById('input-image-url').value; 
             
             btn.disabled = true;
             btn.textContent = "กำลังบันทึกข้อมูล...";
@@ -331,7 +347,7 @@
                     title: document.getElementById('input-title').value,
                     week: document.getElementById('input-week').value,
                     desc: document.getElementById('input-desc').value,
-                    imageUrl: imageUrl, // เซฟลิงก์ลงฐานข้อมูล
+                    imageUrl: imageUrl, 
                     createdAt: serverTimestamp()
                 });
 
@@ -369,8 +385,20 @@
                     const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('th-TH') : 'Just now';
                     
                     const card = document.createElement('div');
-                    card.className = "bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
+                    // 🛠 เพิ่มคลาส relative เพื่อให้ปุ่มลบอยู่ตำแหน่งมุมขวาบนได้พอดี
+                    card.className = "relative bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
                     
+                    // 🛠 เช็คว่าถ้าเป็น Admin ให้สร้างปุ่มลบขึ้นมา
+                    let deleteBtn = '';
+                    if (isAdmin) {
+                        deleteBtn = `
+                            <button onclick="deleteAssignment('${doc.id}')" class="absolute top-3 right-3 bg-red-600/90 text-white px-2 py-1 rounded shadow hover:bg-red-700 transition z-10 text-xs flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                ลบ
+                            </button>
+                        `;
+                    }
+
                     let imgHtml = '';
                     if (data.imageUrl && data.imageUrl.startsWith('http')) {
                         imgHtml = `<div class="w-full h-48 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center">
@@ -379,6 +407,7 @@
                     }
                     
                     card.innerHTML = `
+                        ${deleteBtn}
                         ${imgHtml}
                         <div class="p-6 flex-grow flex flex-col">
                             <div class="flex justify-between items-start mb-3">
