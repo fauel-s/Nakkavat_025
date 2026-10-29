@@ -175,8 +175,10 @@
 
             <!-- Admin Form -->
             <div id="admin-form" class="hidden bg-graphite-light border lux-border p-6 rounded-xl mb-10 shadow-lg relative">
-                <div class="absolute top-4 right-4 bg-[#d4af37]/20 text-champagne text-xs px-2 py-1 rounded">Autosync Active</div>
-                <h3 class="text-champagne font-medium text-lg mb-4">+ เพิ่มใบงานใหม่ (Admin Mode)</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="form-title" class="text-champagne font-medium text-lg">+ เพิ่มใบงานใหม่ (Admin Mode)</h3>
+                    <div class="bg-[#d4af37]/20 text-champagne text-xs px-2 py-1 rounded">Autosync Active</div>
+                </div>
                 
                 <form id="form-assignment" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -213,7 +215,8 @@
                         <label class="block text-pearl-dim text-xs mb-1">รายละเอียด (Description / Links)</label>
                         <textarea id="input-desc" rows="3" class="w-full bg-graphite border lux-border text-pearl rounded px-3 py-2 focus:outline-none focus:border-champagne"></textarea>
                     </div>
-                    <div class="flex justify-end">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" id="btn-cancel-edit" onclick="cancelEdit()" class="hidden bg-transparent border lux-border text-pearl-dim px-6 py-2 rounded hover:text-white transition">ยกเลิก</button>
                         <button type="submit" id="btn-submit-job" class="bg-champagne text-graphite font-medium px-6 py-2 rounded hover:bg-champagne-hover transition">โพสต์ใบงาน</button>
                     </div>
                 </form>
@@ -252,27 +255,22 @@
         </div>
     </div>
 
-    <!-- 🛠 Lightbox Modal (เพิ่มปุ่มลูกศรซ้าย-ขวา) -->
+    <!-- 🛠 Lightbox Modal -->
     <div id="lightbox-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden flex-col items-center justify-center z-[200] p-4 cursor-pointer" onclick="closeLightbox(event)">
-        <!-- ปุ่มปิด -->
         <button onclick="closeLightbox(event, true)" class="absolute top-6 right-6 text-pearl-dim hover:text-white transition bg-graphite-light/50 hover:bg-red-600 rounded-full p-2 z-50">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
         
-        <!-- 🛠 ปุ่มก่อนหน้า (Left) -->
         <button id="lightbox-prev" onclick="prevLightboxImage(event)" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white bg-graphite/50 hover:bg-champagne hover:text-graphite rounded-full p-3 transition z-50">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
 
-        <!-- รูปภาพ -->
         <img id="lightbox-img" src="" alt="Full View" class="max-w-full max-h-[90vh] object-contain rounded shadow-2xl cursor-default transition-opacity duration-300" onclick="event.stopPropagation()">
         
-        <!-- 🛠 ปุ่มถัดไป (Right) -->
         <button id="lightbox-next" onclick="nextLightboxImage(event)" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white bg-graphite/50 hover:bg-champagne hover:text-graphite rounded-full p-3 transition z-50">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
 
-        <!-- ตัวนับหน้า -->
         <div id="lightbox-counter" class="absolute bottom-6 text-pearl-dim bg-graphite/50 px-4 py-1 rounded-full text-sm"></div>
     </div>
 
@@ -290,8 +288,7 @@
             }
         }
 
-        // 🛠 ตัวแปรและฟังก์ชันจัดการแกลลอรี่ใน Lightbox
-        window.galleries = {}; // เก็บข้อมูลรูปภาพของแต่ละโพสต์
+        window.galleries = {};
         window.currentGallery = [];
         window.currentIndex = 0;
 
@@ -311,10 +308,8 @@
             const prevBtn = document.getElementById('lightbox-prev');
             const nextBtn = document.getElementById('lightbox-next');
             
-            // อัปเดตรูป
             img.src = window.currentGallery[window.currentIndex];
             
-            // อัปเดตตัวเลขหน้า และซ่อน/แสดงปุ่มลูกศร
             if (window.currentGallery.length <= 1) {
                 counter.style.display = 'none';
                 prevBtn.style.display = 'none';
@@ -349,7 +344,6 @@
             }
         };
 
-        // รองรับการกดปุ่มบนคีย์บอร์ด (ซ้าย, ขวา, Esc)
         document.addEventListener('keydown', (e) => {
             const modal = document.getElementById('lightbox-modal');
             if (!modal.classList.contains('hidden')) {
@@ -363,7 +357,8 @@
     <!-- Firebase System -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🛠 เพิ่มคำสั่ง updateDoc
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // ==========================================
@@ -383,6 +378,10 @@
         const auth = getAuth(app);
 
         let isAdmin = false;
+        let editingDocId = null; // 🛠 ตัวแปรสำหรับเก็บ ID ตอนกำลังแก้ไข
+
+        // 🛠 เก็บข้อมูลดิบไว้เพื่อใช้ตอนกดแก้ไข
+        window.assignmentDataRaw = {}; 
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -397,6 +396,7 @@
                 document.getElementById('admin-form').classList.add('hidden');
                 document.getElementById('btn-login-modal').classList.remove('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
+                cancelEdit(); // ยกเลิกการแก้ไขถ้า Logout
                 loadAssignments(); 
             }
         });
@@ -439,6 +439,45 @@
             }
         };
 
+        // 🛠 ฟังก์ชันสำหรับดึงข้อมูลขึ้นมาใส่ในฟอร์มเพื่อแก้ไข
+        window.startEdit = (docId) => {
+            const data = window.assignmentDataRaw[docId];
+            if (!data) return;
+
+            document.getElementById('input-title').value = data.title || '';
+            document.getElementById('input-week').value = data.week || 'Week 1';
+            document.getElementById('input-desc').value = data.desc || '';
+
+            // ดึงลิงก์รูปภาพมาเรียงบรรทัดใหม่
+            let urlsStr = '';
+            if (data.imageUrls && Array.isArray(data.imageUrls)) {
+                urlsStr = data.imageUrls.join('\n');
+            } else if (data.imageUrl) {
+                urlsStr = data.imageUrl;
+            }
+            document.getElementById('input-image-url').value = urlsStr;
+
+            // เปลี่ยนหน้าตา UI ของฟอร์ม
+            document.getElementById('form-title').innerText = "✎ แก้ไขใบงาน (Edit Mode)";
+            document.getElementById('btn-submit-job').innerText = "บันทึกการแก้ไข";
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+
+            editingDocId = docId; // บันทึกไว้ว่ากำลังแก้ ID ไหน
+
+            // เลื่อนหน้าจอไปที่ฟอร์มด้านบนสุด
+            document.getElementById('admin-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // 🛠 ฟังก์ชันยกเลิกการแก้ไข
+        window.cancelEdit = () => {
+            document.getElementById('form-assignment').reset();
+            document.getElementById('form-title').innerText = "+ เพิ่มใบงานใหม่ (Admin Mode)";
+            document.getElementById('btn-submit-job').innerText = "โพสต์ใบงาน";
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            editingDocId = null;
+        };
+
+        // 🛠 อัปเดตฟังก์ชัน Submit ให้รองรับทั้งโหมด Add และโหมด Edit
         document.getElementById('form-assignment').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-job');
@@ -448,28 +487,39 @@
                                           .map(url => url.trim())
                                           .filter(url => url.startsWith('http')); 
             
+            const payloadData = {
+                title: document.getElementById('input-title').value,
+                week: document.getElementById('input-week').value,
+                desc: document.getElementById('input-desc').value,
+                imageUrls: imageUrlsArray
+            };
+
             btn.disabled = true;
             btn.textContent = "กำลังบันทึกข้อมูล...";
             
             try {
-                await addDoc(collection(db, "assignments"), {
-                    title: document.getElementById('input-title').value,
-                    week: document.getElementById('input-week').value,
-                    desc: document.getElementById('input-desc').value,
-                    imageUrls: imageUrlsArray,
-                    createdAt: serverTimestamp()
-                });
-
-                document.getElementById('form-assignment').reset();
-                alert("โพสต์ใบงานเรียบร้อยแล้ว!");
+                if (editingDocId) {
+                    // 🛠 ถ้าอยู่ในโหมดแก้ไข ให้อัปเดตข้อมูล (ไม่แก้ไขเวลาลงโพสต์)
+                    const docRef = doc(db, "assignments", editingDocId);
+                    await updateDoc(docRef, payloadData);
+                    alert("อัปเดตใบงานเรียบร้อยแล้ว!");
+                    cancelEdit(); // เคลียร์ฟอร์มกลับเป็นโหมดเพิ่มโพสต์
+                } else {
+                    // ถ้าโหมดปกติ ให้เพิ่มโพสต์ใหม่
+                    payloadData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "assignments"), payloadData);
+                    alert("โพสต์ใบงานเรียบร้อยแล้ว!");
+                    document.getElementById('form-assignment').reset();
+                }
+                
                 loadAssignments(); 
 
             } catch (error) {
-                console.error("Error adding document: ", error);
+                console.error("Error saving document: ", error);
                 alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
             } finally {
                 btn.disabled = false;
-                btn.textContent = "โพสต์ใบงาน";
+                btn.textContent = editingDocId ? "บันทึกการแก้ไข" : "โพสต์ใบงาน";
             }
         });
 
@@ -486,11 +536,15 @@
                 container.innerHTML = '';
                 let count = 0;
                 
-                // เคลียร์แกลลอรี่เก่าทิ้งเพื่อโหลดใหม่
                 window.galleries = {};
+                window.assignmentDataRaw = {}; // 🛠 เคลียร์ข้อมูลดิบสำหรับการแก้ไข
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const docId = docSnap.id;
+                    
+                    window.assignmentDataRaw[docId] = data; // เก็บข้อมูลดิบไว้ดึงไปแก้ไข
+
                     if (filterWeek !== 'ALL' && data.week !== filterWeek) return;
                     
                     count++;
@@ -499,13 +553,20 @@
                     const card = document.createElement('div');
                     card.className = "relative bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
                     
-                    let deleteBtn = '';
+                    // 🛠 เพิ่มปุ่มแก้ไข (Edit) ไว้ข้างๆ ปุ่มลบ
+                    let actionBtns = '';
                     if (isAdmin) {
-                        deleteBtn = `
-                            <button onclick="deleteAssignment('${doc.id}')" class="absolute top-3 right-3 bg-red-600/90 text-white px-2 py-1 rounded shadow hover:bg-red-700 transition z-10 text-xs flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                ลบ
-                            </button>
+                        actionBtns = `
+                            <div class="absolute top-3 right-3 flex gap-2 z-10">
+                                <button onclick="startEdit('${docId}')" class="bg-blue-600/90 text-white px-2 py-1 rounded shadow hover:bg-blue-700 transition text-xs flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    แก้ไข
+                                </button>
+                                <button onclick="deleteAssignment('${docId}')" class="bg-red-600/90 text-white px-2 py-1 rounded shadow hover:bg-red-700 transition text-xs flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    ลบ
+                                </button>
+                            </div>
                         `;
                     }
 
@@ -516,13 +577,11 @@
                         imagesToRender = [data.imageUrl];
                     }
                     
-                    // บันทึกรูปลงตัวแปรระบบตาม ID ของโพสต์
-                    window.galleries[doc.id] = imagesToRender;
+                    window.galleries[docId] = imagesToRender;
 
-                    // 🛠 อัปเดตการคลิกรูปภาพให้ส่ง doc.id และ index (ลำดับรูป)
                     let imgHtml = '';
                     if (imagesToRender.length === 1) {
-                        imgHtml = `<div class="w-full h-56 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox('${doc.id}', 0)">
+                        imgHtml = `<div class="w-full h-56 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox('${docId}', 0)">
                                       <img src="${escapeHTML(imagesToRender[0])}" alt="Assignment Image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                    </div>`;
                     } else if (imagesToRender.length > 1) {
@@ -530,7 +589,7 @@
                             <div class="relative w-full h-56 border-b lux-border bg-graphite group">
                                 <div class="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-full w-full">
                                     ${imagesToRender.map((url, index) => `
-                                        <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center cursor-pointer" onclick="openLightbox('${doc.id}', ${index})">
+                                        <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center cursor-pointer" onclick="openLightbox('${docId}', ${index})">
                                             <img src="${escapeHTML(url)}" alt="Gallery Image" class="w-full h-full object-cover">
                                         </div>
                                     `).join('')}
@@ -542,7 +601,7 @@
                     }
                     
                     card.innerHTML = `
-                        ${deleteBtn}
+                        ${actionBtns}
                         ${imgHtml}
                         <div class="p-6 flex-grow flex flex-col">
                             <div class="flex justify-between items-start mb-3">
