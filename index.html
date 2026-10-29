@@ -94,6 +94,9 @@
                         <h3 class="text-champagne font-medium mb-4 text-lg">Contact Info</h3>
                         <ul class="space-y-3 text-sm text-pearl-dim">
                             <li><strong class="text-pearl">ชื่อ-นามสกุล:</strong> นาย นัควัฒน์ อรุณฤกษ์</li>
+                            <!-- 🛠 เพิ่มชื่อเล่นและวันเกิดที่นี่ -->
+                            <li><strong class="text-pearl">ชื่อเล่น:</strong> แอนฟิลด์</li>
+                            <li><strong class="text-pearl">วันเกิด:</strong> 12 เมษายน 2551</li>
                             <li><strong class="text-pearl">เบอร์โทรศัพท์:</strong> 0996108714</li>
                             <li><strong class="text-pearl">อีเมล:</strong> nakkawatarumruek@email.com</li>
                             <li><strong class="text-pearl">ที่อยู่:</strong> อำเภอท่าซัก จังหวัดนครศรีธรรมราช</li>
@@ -357,7 +360,6 @@
     <!-- Firebase System -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // 🛠 เพิ่มคำสั่ง updateDoc
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -378,9 +380,7 @@
         const auth = getAuth(app);
 
         let isAdmin = false;
-        let editingDocId = null; // 🛠 ตัวแปรสำหรับเก็บ ID ตอนกำลังแก้ไข
-
-        // 🛠 เก็บข้อมูลดิบไว้เพื่อใช้ตอนกดแก้ไข
+        let editingDocId = null; 
         window.assignmentDataRaw = {}; 
 
         onAuthStateChanged(auth, (user) => {
@@ -396,7 +396,7 @@
                 document.getElementById('admin-form').classList.add('hidden');
                 document.getElementById('btn-login-modal').classList.remove('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
-                cancelEdit(); // ยกเลิกการแก้ไขถ้า Logout
+                cancelEdit(); 
                 loadAssignments(); 
             }
         });
@@ -439,7 +439,6 @@
             }
         };
 
-        // 🛠 ฟังก์ชันสำหรับดึงข้อมูลขึ้นมาใส่ในฟอร์มเพื่อแก้ไข
         window.startEdit = (docId) => {
             const data = window.assignmentDataRaw[docId];
             if (!data) return;
@@ -448,7 +447,6 @@
             document.getElementById('input-week').value = data.week || 'Week 1';
             document.getElementById('input-desc').value = data.desc || '';
 
-            // ดึงลิงก์รูปภาพมาเรียงบรรทัดใหม่
             let urlsStr = '';
             if (data.imageUrls && Array.isArray(data.imageUrls)) {
                 urlsStr = data.imageUrls.join('\n');
@@ -457,18 +455,14 @@
             }
             document.getElementById('input-image-url').value = urlsStr;
 
-            // เปลี่ยนหน้าตา UI ของฟอร์ม
             document.getElementById('form-title').innerText = "✎ แก้ไขใบงาน (Edit Mode)";
             document.getElementById('btn-submit-job').innerText = "บันทึกการแก้ไข";
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
 
-            editingDocId = docId; // บันทึกไว้ว่ากำลังแก้ ID ไหน
-
-            // เลื่อนหน้าจอไปที่ฟอร์มด้านบนสุด
+            editingDocId = docId; 
             document.getElementById('admin-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
-        // 🛠 ฟังก์ชันยกเลิกการแก้ไข
         window.cancelEdit = () => {
             document.getElementById('form-assignment').reset();
             document.getElementById('form-title').innerText = "+ เพิ่มใบงานใหม่ (Admin Mode)";
@@ -477,7 +471,6 @@
             editingDocId = null;
         };
 
-        // 🛠 อัปเดตฟังก์ชัน Submit ให้รองรับทั้งโหมด Add และโหมด Edit
         document.getElementById('form-assignment').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-job');
@@ -499,13 +492,11 @@
             
             try {
                 if (editingDocId) {
-                    // 🛠 ถ้าอยู่ในโหมดแก้ไข ให้อัปเดตข้อมูล (ไม่แก้ไขเวลาลงโพสต์)
                     const docRef = doc(db, "assignments", editingDocId);
                     await updateDoc(docRef, payloadData);
                     alert("อัปเดตใบงานเรียบร้อยแล้ว!");
-                    cancelEdit(); // เคลียร์ฟอร์มกลับเป็นโหมดเพิ่มโพสต์
+                    cancelEdit(); 
                 } else {
-                    // ถ้าโหมดปกติ ให้เพิ่มโพสต์ใหม่
                     payloadData.createdAt = serverTimestamp();
                     await addDoc(collection(db, "assignments"), payloadData);
                     alert("โพสต์ใบงานเรียบร้อยแล้ว!");
@@ -537,13 +528,13 @@
                 let count = 0;
                 
                 window.galleries = {};
-                window.assignmentDataRaw = {}; // 🛠 เคลียร์ข้อมูลดิบสำหรับการแก้ไข
+                window.assignmentDataRaw = {}; 
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     const docId = docSnap.id;
                     
-                    window.assignmentDataRaw[docId] = data; // เก็บข้อมูลดิบไว้ดึงไปแก้ไข
+                    window.assignmentDataRaw[docId] = data; 
 
                     if (filterWeek !== 'ALL' && data.week !== filterWeek) return;
                     
@@ -553,7 +544,6 @@
                     const card = document.createElement('div');
                     card.className = "relative bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
                     
-                    // 🛠 เพิ่มปุ่มแก้ไข (Edit) ไว้ข้างๆ ปุ่มลบ
                     let actionBtns = '';
                     if (isAdmin) {
                         actionBtns = `
