@@ -160,6 +160,15 @@
                         <option value="Week 4">Week 4</option>
                         <option value="Week 5">Week 5</option>
                         <option value="Week 6">Week 6</option>
+                        <option value="Week 7">Week 7</option>
+                        <option value="Week 8">Week 8</option>
+                        <option value="Week 9">Week 9</option>
+                        <option value="Week 10">Week 10</option>
+                        <option value="Week 11">Week 11</option>
+                        <option value="Week 12">Week 12</option>
+                        <option value="Week 13">Week 13</option>
+                        <option value="Week 14">Week 14</option>
+                        <option value="Week 15">Week 15</option>
                     </select>
                 </div>
             </div>
@@ -243,12 +252,28 @@
         </div>
     </div>
 
-    <!-- 🛠 Lightbox Modal (หน้าต่างขยายรูปภาพ) -->
+    <!-- 🛠 Lightbox Modal (เพิ่มปุ่มลูกศรซ้าย-ขวา) -->
     <div id="lightbox-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden flex-col items-center justify-center z-[200] p-4 cursor-pointer" onclick="closeLightbox(event)">
-        <button onclick="closeLightbox(event, true)" class="absolute top-6 right-6 text-pearl-dim hover:text-white transition bg-graphite-light/50 rounded-full p-2 z-50">
+        <!-- ปุ่มปิด -->
+        <button onclick="closeLightbox(event, true)" class="absolute top-6 right-6 text-pearl-dim hover:text-white transition bg-graphite-light/50 hover:bg-red-600 rounded-full p-2 z-50">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
-        <img id="lightbox-img" src="" alt="Full View" class="max-w-full max-h-[90vh] object-contain rounded shadow-2xl cursor-default" onclick="event.stopPropagation()">
+        
+        <!-- 🛠 ปุ่มก่อนหน้า (Left) -->
+        <button id="lightbox-prev" onclick="prevLightboxImage(event)" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white bg-graphite/50 hover:bg-champagne hover:text-graphite rounded-full p-3 transition z-50">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+
+        <!-- รูปภาพ -->
+        <img id="lightbox-img" src="" alt="Full View" class="max-w-full max-h-[90vh] object-contain rounded shadow-2xl cursor-default transition-opacity duration-300" onclick="event.stopPropagation()">
+        
+        <!-- 🛠 ปุ่มถัดไป (Right) -->
+        <button id="lightbox-next" onclick="nextLightboxImage(event)" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white bg-graphite/50 hover:bg-champagne hover:text-graphite rounded-full p-3 transition z-50">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <!-- ตัวนับหน้า -->
+        <div id="lightbox-counter" class="absolute bottom-6 text-pearl-dim bg-graphite/50 px-4 py-1 rounded-full text-sm"></div>
     </div>
 
     <!-- UI Logic -->
@@ -265,23 +290,74 @@
             }
         }
 
-        // 🛠 ฟังก์ชันเปิด-ปิด Lightbox
-        window.openLightbox = (url) => {
+        // 🛠 ตัวแปรและฟังก์ชันจัดการแกลลอรี่ใน Lightbox
+        window.galleries = {}; // เก็บข้อมูลรูปภาพของแต่ละโพสต์
+        window.currentGallery = [];
+        window.currentIndex = 0;
+
+        window.openLightbox = (docId, index) => {
+            window.currentGallery = window.galleries[docId];
+            window.currentIndex = index;
+            updateLightboxImage();
+            
             const modal = document.getElementById('lightbox-modal');
-            const img = document.getElementById('lightbox-img');
-            img.src = url;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         };
 
+        window.updateLightboxImage = () => {
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+            
+            // อัปเดตรูป
+            img.src = window.currentGallery[window.currentIndex];
+            
+            // อัปเดตตัวเลขหน้า และซ่อน/แสดงปุ่มลูกศร
+            if (window.currentGallery.length <= 1) {
+                counter.style.display = 'none';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                counter.style.display = 'block';
+                counter.innerText = (window.currentIndex + 1) + ' / ' + window.currentGallery.length;
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+            }
+        };
+
+        window.prevLightboxImage = (e) => {
+            if(e) e.stopPropagation();
+            window.currentIndex = (window.currentIndex - 1 + window.currentGallery.length) % window.currentGallery.length;
+            updateLightboxImage();
+        };
+
+        window.nextLightboxImage = (e) => {
+            if(e) e.stopPropagation();
+            window.currentIndex = (window.currentIndex + 1) % window.currentGallery.length;
+            updateLightboxImage();
+        };
+
         window.closeLightbox = (event, force = false) => {
-            if (force || event.target.id === 'lightbox-modal') {
+            if (force || (event && event.target.id === 'lightbox-modal')) {
                 const modal = document.getElementById('lightbox-modal');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
                 document.getElementById('lightbox-img').src = '';
+                window.currentGallery = [];
             }
         };
+
+        // รองรับการกดปุ่มบนคีย์บอร์ด (ซ้าย, ขวา, Esc)
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('lightbox-modal');
+            if (!modal.classList.contains('hidden')) {
+                if (e.key === 'ArrowLeft') window.prevLightboxImage();
+                if (e.key === 'ArrowRight') window.nextLightboxImage();
+                if (e.key === 'Escape') window.closeLightbox(null, true);
+            }
+        });
     </script>
 
     <!-- Firebase System -->
@@ -409,6 +485,9 @@
                 
                 container.innerHTML = '';
                 let count = 0;
+                
+                // เคลียร์แกลลอรี่เก่าทิ้งเพื่อโหลดใหม่
+                window.galleries = {};
 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -436,19 +515,22 @@
                     } else if (data.imageUrl && data.imageUrl.startsWith('http')) {
                         imagesToRender = [data.imageUrl];
                     }
+                    
+                    // บันทึกรูปลงตัวแปรระบบตาม ID ของโพสต์
+                    window.galleries[doc.id] = imagesToRender;
 
-                    // 🛠 อัปเดตให้กดที่รูปเพื่อเรียกฟังก์ชัน openLightbox ได้
+                    // 🛠 อัปเดตการคลิกรูปภาพให้ส่ง doc.id และ index (ลำดับรูป)
                     let imgHtml = '';
                     if (imagesToRender.length === 1) {
-                        imgHtml = `<div class="w-full h-56 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox('${escapeHTML(imagesToRender[0])}')">
+                        imgHtml = `<div class="w-full h-56 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center cursor-pointer group" onclick="openLightbox('${doc.id}', 0)">
                                       <img src="${escapeHTML(imagesToRender[0])}" alt="Assignment Image" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                    </div>`;
                     } else if (imagesToRender.length > 1) {
                         imgHtml = `
                             <div class="relative w-full h-56 border-b lux-border bg-graphite group">
                                 <div class="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-full w-full">
-                                    ${imagesToRender.map(url => `
-                                        <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center cursor-pointer" onclick="openLightbox('${escapeHTML(url)}')">
+                                    ${imagesToRender.map((url, index) => `
+                                        <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center cursor-pointer" onclick="openLightbox('${doc.id}', ${index})">
                                             <img src="${escapeHTML(url)}" alt="Gallery Image" class="w-full h-full object-cover">
                                         </div>
                                     `).join('')}
