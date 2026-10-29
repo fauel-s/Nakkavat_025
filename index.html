@@ -34,9 +34,15 @@
         .tab-content { display: none !important; }
         #tab-home.active { display: flex !important; }
         #tab-profile.active, #tab-assignments.active { display: block !important; }
-        ::-webkit-scrollbar { width: 8px; }
+        
+        /* Custom Scrollbar for Page */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
         ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
+        
+        /* Hide scrollbar for image gallery but keep functionality */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col font-sans">
@@ -158,7 +164,7 @@
                 </div>
             </div>
 
-            <!-- Admin Form (Modified for Image URL) -->
+            <!-- Admin Form (Modified for Multiple Images) -->
             <div id="admin-form" class="hidden bg-graphite-light border lux-border p-6 rounded-xl mb-10 shadow-lg relative">
                 <div class="absolute top-4 right-4 bg-[#d4af37]/20 text-champagne text-xs px-2 py-1 rounded">Autosync Active</div>
                 <h3 class="text-champagne font-medium text-lg mb-4">+ เพิ่มใบงานใหม่ (Admin Mode)</h3>
@@ -190,9 +196,10 @@
                             </select>
                         </div>
                     </div>
+                    <!-- 🛠 แก้ไขช่องรับรูปรองรับการพิมพ์หลายบรรทัด -->
                     <div>
-                        <label class="block text-pearl-dim text-xs mb-1">ลิงก์รูปภาพ (Image URL) *นำรูปลงเว็บฝากรูปแล้วนำลิงก์ Direct link มาวาง*</label>
-                        <input type="url" id="input-image-url" placeholder="เช่น https://i.postimg.cc/.../image.jpg (เว้นว่างได้)" class="w-full bg-graphite border lux-border text-pearl rounded px-3 py-2 focus:outline-none focus:border-champagne">
+                        <label class="block text-pearl-dim text-xs mb-1">ลิงก์รูปภาพ (Image URLs) *หากมีหลายรูป ให้กด Enter ขึ้นบรรทัดใหม่ทีละลิงก์*</label>
+                        <textarea id="input-image-url" rows="3" placeholder="ตัวอย่าง:&#10;https://i.postimg.cc/.../image1.jpg&#10;https://i.postimg.cc/.../image2.jpg" class="w-full bg-graphite border lux-border text-pearl text-sm rounded px-3 py-2 focus:outline-none focus:border-champagne leading-relaxed"></textarea>
                     </div>
                     <div>
                         <label class="block text-pearl-dim text-xs mb-1">รายละเอียด (Description / Links)</label>
@@ -255,7 +262,6 @@
     <!-- Firebase System -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // 🛠 เพิ่มคำสั่ง deleteDoc และ doc สำหรับใช้ลบข้อมูล
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -284,13 +290,13 @@
                 document.getElementById('btn-login-modal').classList.add('hidden');
                 document.getElementById('btn-logout').classList.remove('hidden');
                 document.getElementById('login-modal').classList.add('hidden');
-                loadAssignments(); // รีโหลดเพื่อโชว์ปุ่มลบ
+                loadAssignments(); 
             } else {
                 isAdmin = false;
                 document.getElementById('admin-form').classList.add('hidden');
                 document.getElementById('btn-login-modal').classList.remove('hidden');
                 document.getElementById('btn-logout').classList.add('hidden');
-                loadAssignments(); // รีโหลดเพื่อซ่อนปุ่มลบ
+                loadAssignments(); 
             }
         });
 
@@ -319,13 +325,12 @@
 
         window.logoutAdmin = () => signOut(auth);
 
-        // 🛠 ฟังก์ชันสำหรับลบใบงาน
         window.deleteAssignment = async (docId) => {
             if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบใบงานนี้? (ลบแล้วกู้คืนไม่ได้)")) {
                 try {
                     await deleteDoc(doc(db, "assignments", docId));
                     alert("ลบใบงานสำเร็จ!");
-                    loadAssignments(); // รีโหลดใบงานใหม่หลังจากลบเสร็จ
+                    loadAssignments(); 
                 } catch (error) {
                     console.error("Error deleting document: ", error);
                     alert("เกิดข้อผิดพลาดในการลบใบงาน");
@@ -333,11 +338,16 @@
             }
         };
 
-        // ฟังก์ชันโพสต์ใบงาน
+        // 🛠 อัปเดตฟังก์ชันบันทึกข้อมูลให้รับหลายลิงก์
         document.getElementById('form-assignment').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-submit-job');
-            const imageUrl = document.getElementById('input-image-url').value; 
+            
+            // อ่านค่าจาก Textarea แล้วแยกบรรทัดเป็น Array ของรูปลิงก์
+            const rawUrls = document.getElementById('input-image-url').value;
+            const imageUrlsArray = rawUrls.split('\n')
+                                          .map(url => url.trim())
+                                          .filter(url => url.startsWith('http')); 
             
             btn.disabled = true;
             btn.textContent = "กำลังบันทึกข้อมูล...";
@@ -347,7 +357,7 @@
                     title: document.getElementById('input-title').value,
                     week: document.getElementById('input-week').value,
                     desc: document.getElementById('input-desc').value,
-                    imageUrl: imageUrl, 
+                    imageUrls: imageUrlsArray, // เซฟเป็น Array เก็บหลายลิงก์
                     createdAt: serverTimestamp()
                 });
 
@@ -364,6 +374,7 @@
             }
         });
 
+        // 🛠 อัปเดตฟังก์ชันแสดงผลให้โชว์แกลลอรี่ถ้ามีหลายรูป
         window.loadAssignments = async () => {
             const container = document.getElementById('assignments-container');
             const filterWeek = document.getElementById('filter-week').value;
@@ -385,10 +396,8 @@
                     const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('th-TH') : 'Just now';
                     
                     const card = document.createElement('div');
-                    // 🛠 เพิ่มคลาส relative เพื่อให้ปุ่มลบอยู่ตำแหน่งมุมขวาบนได้พอดี
                     card.className = "relative bg-graphite-light border lux-border rounded-xl overflow-hidden shadow-lg flex flex-col hover:border-champagne/60 transition duration-300";
                     
-                    // 🛠 เช็คว่าถ้าเป็น Admin ให้สร้างปุ่มลบขึ้นมา
                     let deleteBtn = '';
                     if (isAdmin) {
                         deleteBtn = `
@@ -399,11 +408,36 @@
                         `;
                     }
 
+                    // 🛠 ระบบจัดเรียงรูปภาพ (รองรับทั้งโพสต์เก่ารูปเดียว และโพสต์ใหม่หลายรูป)
+                    let imagesToRender = [];
+                    if (data.imageUrls && Array.isArray(data.imageUrls) && data.imageUrls.length > 0) {
+                        imagesToRender = data.imageUrls;
+                    } else if (data.imageUrl && data.imageUrl.startsWith('http')) {
+                        // ดึงของเก่ามาแสดง
+                        imagesToRender = [data.imageUrl];
+                    }
+
                     let imgHtml = '';
-                    if (data.imageUrl && data.imageUrl.startsWith('http')) {
-                        imgHtml = `<div class="w-full h-48 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center">
-                                      <img src="${escapeHTML(data.imageUrl)}" alt="Assignment Image" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+                    if (imagesToRender.length === 1) {
+                        // กรณีมีรูปเดียว
+                        imgHtml = `<div class="w-full h-56 border-b lux-border bg-graphite overflow-hidden flex items-center justify-center">
+                                      <img src="${escapeHTML(imagesToRender[0])}" alt="Assignment Image" class="w-full h-full object-cover hover:scale-105 transition duration-500">
                                    </div>`;
+                    } else if (imagesToRender.length > 1) {
+                        // กรณีมีหลายรูป ทำเป็นแกลลอรี่สไลด์แนวนอน
+                        imgHtml = `
+                            <div class="relative w-full h-56 border-b lux-border bg-graphite">
+                                <div class="flex overflow-x-auto snap-x snap-mandatory hide-scroll h-full w-full">
+                                    ${imagesToRender.map(url => `
+                                        <div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center">
+                                            <img src="${escapeHTML(url)}" alt="Gallery Image" class="w-full h-full object-cover">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm pointer-events-none">
+                                    มี ${imagesToRender.length} รูป (เลื่อนซ้าย-ขวา)
+                                </div>
+                            </div>`;
                     }
                     
                     card.innerHTML = `
